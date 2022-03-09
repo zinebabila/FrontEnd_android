@@ -1,8 +1,10 @@
 package com.example.tpjsonimage;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +13,7 @@ import android.os.Bundle;
 import android.util.Xml;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -32,43 +35,33 @@ import java.util.ArrayList;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
-    ListView lv1;
-    TextView result;
-    ImageView image;
-    ArrayList arr =new ArrayList();
-    Context context=this;
+
+
+    ArrayList<Livre> livres=new ArrayList<>();
+
+    ListView listView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        lv1=findViewById(R.id.lv1);
-        result=findViewById(R.id.result);
+
         MyAsyncTask asyncTask =new MyAsyncTask();
         //Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(image);
+        listView=findViewById(android.R.id.list);
 
-        asyncTask.execute("http://172.17.36.195:45455/api/controller");
+        asyncTask.execute("http://172.17.36.195:45455/api/Livres");
     }
     class MyAsyncTask extends AsyncTask<String, String, String> {
         String newData="";
-        Bitmap b;
-        JSONObject Jobj;
-        String nom=" ";
+
 
         @Override
         protected void onPostExecute(String s) {
-            result.setText(nom);
-            //lv1.setAdapter(new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1,arr));
-            try {
+            new Adapter(livres,(RecyclerView) findViewById(R.id.resc));
+           // Adapter adap = new Adapter((Activity) getApplicationContext(), livres);
 
-                //image.setImageBitmap(b);
-                //Picasso.get().load(Jobj.getString("m")).into(image);
-
-
-              //  result.setText(Jobj.getString("m"));
-                //image.setImageResource(R.drawable.kurapika);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+           // listView.setAdapter(adap);
 
         }
 
@@ -88,14 +81,19 @@ public class MainActivity extends AppCompatActivity {
                 //StringReader fis = new StringReader(newData);
                 //JSONObject myJson=new JSONObject(newData);
                 JSONArray myarray=new JSONArray(newData);
-                myarray.length();
+                //myarray.length();
                // JSONArray arrayJ=myJson.getJSONArray("items");
                // JSONObject Jobj1=arrayJ.getJSONObject(2);
-                for(int i=0;i<myarray.length();i++)
+                for(int i=0;i<myarray.length();i++){
+                    JSONObject obj=myarray.getJSONObject(i);
+                    String nom=obj.getString("nom");
+                    String image=obj.getString("image");
+                    livres.add(new Livre(nom,image));
+
+                }
 
 
-               nom =nom+ "\n "+myarray.getJSONObject(i).getString("nom");
-                //publishProgress(newData);
+
 
             }catch (Exception exp){
                 publishProgress("cannot connect to server");
@@ -105,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onProgressUpdate(String... values) {
-            result.setText(values[0]);
+
         }
 
         @SuppressLint("WrongThread")
@@ -122,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
                     text+=line;
                 }
             }catch (Exception exp){}
+            System.out.println(text);
+            System.out.println("****************************************************");
             return text;
         }
     }
